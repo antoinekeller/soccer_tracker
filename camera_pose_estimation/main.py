@@ -131,6 +131,13 @@ def find_closer_point_on_line(point, line):
 
 
 def extend_key_points_set(key_points, K, to_device_from_world, key_lines):
+    """
+    As the PnP is not so performant with only a few points, we try to get closer
+    to the Perspective-n-Line algo by projecting corners even if they are not visible
+
+    We modifiy the key_points set.
+    """
+
     if key_points.corner_back_right is None and key_points.corner_back_left is None:
         pt = project_to_screen(K, to_device_from_world, corner_front_right_world)
         key_points.corner_front_right = find_closer_point_on_line(
@@ -161,11 +168,14 @@ def extend_key_points_set(key_points, K, to_device_from_world, key_lines):
 
 
 def calibrate_from_image(img, guess_fx, guess_rot, guess_trans):
+    """
+    After selecting visible key_points, perform PnP algorithm a first time.
+    Then, extend key points set by adding not visible corners of the soccer pitch,
+    to enforce line fitting.
+    Finally redo a PnP pass.
+    """
 
     key_points, key_lines = find_key_points(img)
-
-    # cv2.imshow("Draw key points", img)
-    # cv2.waitKey(0)
 
     assert not np.isnan(guess_rot[0, 0])
 
@@ -178,20 +188,18 @@ def calibrate_from_image(img, guess_fx, guess_rot, guess_trans):
 
     extend_key_points_set(key_points, K, to_device_from_world, key_lines)
 
-    guess_fx = K[0, 0]
-    # cv2.imshow("Test", img)
-    # cv2.waitKey(0)
     to_device_from_world, K, found_rot, found_trans = find_extrinsic_intrinsic_matrices(
-        img, guess_fx, guess_rot, guess_trans, key_points
+        img, K[0, 0], guess_rot, guess_trans, key_points
     )
 
     return K, to_device_from_world, found_rot, found_trans, img
 
 
-def draw_yaw_and_zoom(img, yaw, zoom):
+def display_yaw_and_focal_length(img, yaw, fx):
+    """Display infos on image (yaw angle + fx)"""
     img = cv2.putText(
         img,
-        f"Yaw: {yaw:.0f} deg, Zoom: {zoom:.0f}",
+        f"Yaw: {yaw:.0f} deg, Focal: {fx:.0f}",
         (1280, 120),
         cv2.FONT_HERSHEY_COMPLEX,
         1,
@@ -203,6 +211,8 @@ def draw_yaw_and_zoom(img, yaw, zoom):
 
 
 if __name__ == "__main__":
+    # Default value of our focal length to start with
+    # Dont forget to change this value if you are using different sizes of images
     guess_fx = 2000
 
     parser = ArgumentParser(
@@ -246,8 +256,11 @@ if __name__ == "__main__":
 
         if to_device_from_world is not None:
             img = draw_pitch_lines(K, to_device_from_world, img)
-            img = draw_yaw_and_zoom(img, guess_rot[0, 1] * 180 / np.pi, K[0, 0])
+            img = display_yaw_and_focal_length(
+                img, guess_rot[0, 1] * 180 / np.pi, K[0, 0]
+            )
 
+        # Modify current value of calibration matrices to get benefit of this computation for next image
         guess_rot = (
             rot if to_device_from_world is not None else np.array([[0.25, 0, 0]])
         )
