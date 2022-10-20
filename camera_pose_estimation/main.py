@@ -36,7 +36,9 @@ from projector import (
 )
 
 
-def find_extrinsic_intrinsic_matrices(img, fx, guess_rot, guess_trans, key_points):
+def find_extrinsic_intrinsic_matrices(
+    img, guess_fx, guess_rot, guess_trans, key_points
+):
     """
     Given rough estimate of the focal length and of the camera pose, use PnP algorithm
     to optimally fit key_points (2D) with corresponding points on the pitch (3D)
@@ -53,13 +55,10 @@ def find_extrinsic_intrinsic_matrices(img, fx, guess_rot, guess_trans, key_point
     print(f"Solving PnP with {len(pixels)} points")
 
     # Build camera projection matrix
-    # TODO
-    est_fx = key_points.compute_fx()
-    if est_fx is None:
-        est_fx = fx
+    fx = key_points.compute_focal_length(guess_fx)
 
     # Camera projection matrix
-    K = np.array([[est_fx, 0, width / 2], [0, est_fx, height / 2], [0, 0, 1]])
+    K = np.array([[fx, 0, width / 2], [0, fx, height / 2], [0, 0, 1]])
 
     if pixels.shape[0] <= 3:
         print("Too few points to solve!")
@@ -93,12 +92,12 @@ def find_extrinsic_intrinsic_matrices(img, fx, guess_rot, guess_trans, key_point
     print(
         f"Camera is located at {-camera_position_in_world[1,0]:.1f}m high and at {-camera_position_in_world[2,0]:.1f}m depth"
     )
-    if est_fx is None:
+    if fx is None:
         print("CRAZY VALUE!!!")
         return None, None, guess_rot, guess_trans
 
     dist_to_center = np.linalg.norm(camera_position_in_world)
-    print(f"Final fx = {est_fx:.1f}. Distance to origin = {dist_to_center:.1f}m")
+    print(f"Final fx = {fx:.1f}. Distance to origin = {dist_to_center:.1f}m")
     if dist_to_center > 100.0:
         print("PnP: CRAZY VALUE!!!")
         return None, K, guess_rot, guess_trans

@@ -105,12 +105,13 @@ class KeyPoints:
 
         return pixels, points_world
 
-    def compute_fx(self):
+    def compute_focal_length(self, guess_fx):
         """
-        Compute the focal length based on the central circle
+        Compute the focal length based on the central circle.
+        If we cant spot the central circle, we return the default incoming value
         """
         if self.right_circle is None and self.left_circle is None:
-            return None
+            return guess_fx
 
         if self.right_circle is not None and self.left_circle is not None:
             fx = (
@@ -121,7 +122,7 @@ class KeyPoints:
             return fx
 
         if self.behind_circle is None or self.front_circle is None:
-            return None
+            return guess_fx
 
         central = [
             int((self.behind_circle[0] + self.front_circle[0]) / 2),
