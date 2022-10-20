@@ -1,4 +1,5 @@
 from .common import draw_point
+import numpy as np
 
 # Points in world with origin au centre, x a droite, y vers le fond, z en haut
 central_world = [0, 0, 0]
@@ -52,6 +53,46 @@ class KeyPoints:
     def __str__(self):
         str = f"Central: {self.central}\nRight circle: {self.right_circle}\nLeft circle: {self.left_circle}\nBehing circle: {self.behind_circle}\nFront circle: {self.front_circle}\nBack middle line: {self.back_middle_line}\nFront middle line: {self.front_middle_line}"
         return str
+
+    def make_2d_3d_association_list(self):
+        pixels = []
+        points_world = []
+
+        if self.right_circle is not None:
+            pixels.append(self.right_circle)
+            points_world.append(right_circle_world)
+        if self.left_circle is not None:
+            pixels.append(self.left_circle)
+            points_world.append(left_circle_world)
+        if self.behind_circle is not None:
+            pixels.append(self.behind_circle)
+            points_world.append(behind_circle_world)
+        if self.front_circle is not None:
+            pixels.append(self.front_circle)
+            points_world.append(front_circle_world)
+        if self.front_middle_line is not None:
+            pixels.append(self.front_middle_line)
+            points_world.append(front_middle_line_world)
+        if self.back_middle_line is not None:
+            pixels.append(self.back_middle_line)
+            points_world.append(back_middle_line_world)
+        if self.corner_front_left is not None:
+            pixels.append(self.corner_front_left)
+            points_world.append(corner_front_left_world)
+        if self.corner_front_right is not None:
+            pixels.append(self.corner_front_right)
+            points_world.append(corner_front_right_world)
+        if self.corner_back_left is not None:
+            pixels.append(self.corner_back_left)
+            points_world.append(corner_back_left_world)
+        if self.corner_back_right is not None:
+            pixels.append(self.corner_back_right)
+            points_world.append(corner_back_right_world)
+
+        pixels = np.array(pixels, dtype=np.float32)
+        points_world = np.array(points_world)
+
+        return pixels, points_world
 
     def compute_fx(self):
         if self.right_circle is None and self.left_circle is None:

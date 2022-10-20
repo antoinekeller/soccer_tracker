@@ -18,58 +18,16 @@ from points_in_world import *
 def find_extrinsic_intrinsic_matrices(img, fx, guess_rot, guess_trans, key_points):
     height, width = img.shape[0], img.shape[1]
 
-    print(guess_rot, guess_trans)
+    # Build camera projection matrix
+    K = np.array([[fx, 0, width / 2], [0, fx, height / 2], [0, 0, 1]])
 
-    K = np.zeros((3, 3))
-
-    K[0, 0] = fx
-    K[1, 1] = fx
-    K[0, 2] = width / 2
-    K[1, 2] = height / 2
-    K[2, 2] = 1
-
-    pixels = []
-    points_world = []
-    if key_points.right_circle is not None:
-        pixels.append(key_points.right_circle)
-        points_world.append(right_circle_world)
-    if key_points.left_circle is not None:
-        pixels.append(key_points.left_circle)
-        points_world.append(left_circle_world)
-    if key_points.behind_circle is not None:
-        pixels.append(key_points.behind_circle)
-        points_world.append(behind_circle_world)
-    if key_points.front_circle is not None:
-        pixels.append(key_points.front_circle)
-        points_world.append(front_circle_world)
-    if key_points.front_middle_line is not None:
-        pixels.append(key_points.front_middle_line)
-        points_world.append(front_middle_line_world)
-    if key_points.back_middle_line is not None:
-        pixels.append(key_points.back_middle_line)
-        points_world.append(back_middle_line_world)
-    if key_points.corner_front_left is not None:
-        pixels.append(key_points.corner_front_left)
-        points_world.append(corner_front_left_world)
-    if key_points.corner_front_right is not None:
-        pixels.append(key_points.corner_front_right)
-        points_world.append(corner_front_right_world)
-    if key_points.corner_back_left is not None:
-        pixels.append(key_points.corner_back_left)
-        points_world.append(corner_back_left_world)
-    if key_points.corner_back_right is not None:
-        pixels.append(key_points.corner_back_right)
-        points_world.append(corner_back_right_world)
+    pixels, points_world = key_points.make_2d_3d_association_list()
 
     print(f"Solving PnP with {len(pixels)} points")
-
-    pixels = np.array(pixels, dtype=np.float32)
 
     if pixels.shape[0] <= 3:
         print("Too few points to solve!")
         return None, K, guess_rot, guess_trans
-
-    points_world = np.array(points_world)
 
     rotation_vector = guess_rot
     translation_vector = guess_trans
