@@ -130,22 +130,7 @@ def find_closer_point_on_line(point, line):
     return projected_point
 
 
-def calibrate_from_image(img, guess_fx, guess_rot, guess_trans):
-
-    key_points, key_lines = find_key_points(img)
-
-    # cv2.imshow("Draw key points", img)
-    # cv2.waitKey(0)
-
-    assert not np.isnan(guess_rot[0, 0])
-
-    to_device_from_world, K, guess_rot, guess_trans = find_extrinsic_intrinsic_matrices(
-        img, guess_fx, guess_rot, guess_trans, key_points
-    )
-
-    if to_device_from_world is None:
-        return K, to_device_from_world, guess_rot, guess_trans, img
-
+def extend_key_points_set(key_points, K, to_device_from_world, key_lines):
     if key_points.corner_back_right is None and key_points.corner_back_left is None:
         pt = project_to_screen(K, to_device_from_world, corner_front_right_world)
         key_points.corner_front_right = find_closer_point_on_line(
@@ -173,6 +158,25 @@ def calibrate_from_image(img, guess_fx, guess_rot, guess_trans):
         key_points.corner_front_left = intersect(
             key_lines.left_goal_line, key_lines.front_line
         )
+
+
+def calibrate_from_image(img, guess_fx, guess_rot, guess_trans):
+
+    key_points, key_lines = find_key_points(img)
+
+    # cv2.imshow("Draw key points", img)
+    # cv2.waitKey(0)
+
+    assert not np.isnan(guess_rot[0, 0])
+
+    to_device_from_world, K, guess_rot, guess_trans = find_extrinsic_intrinsic_matrices(
+        img, guess_fx, guess_rot, guess_trans, key_points
+    )
+
+    if to_device_from_world is None:
+        return K, to_device_from_world, guess_rot, guess_trans, img
+
+    extend_key_points_set(key_points, K, to_device_from_world, key_lines)
 
     guess_fx = K[0, 0]
     # cv2.imshow("Test", img)

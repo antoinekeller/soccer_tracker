@@ -55,7 +55,12 @@ class KeyPoints:
         return img
 
     def __str__(self):
-        str = f"Right circle: {self.right_circle}\nLeft circle: {self.left_circle}\nBehing circle: {self.behind_circle}\nFront circle: {self.front_circle}\nBack middle line: {self.back_middle_line}\nFront middle line: {self.front_middle_line}"
+        str = (
+            f"Right circle: {self.right_circle}\nLeft circle: {self.left_circle}\nBehing circle: {self.behind_circle}\n"
+            f"Front circle: {self.front_circle}\nBack middle line: {self.back_middle_line}\nFront middle line: {self.front_middle_line}\n"
+            f"Corner back left: {self.corner_back_left}\nCorner back right: {self.corner_back_right}\n"
+            f"Corner front left: {self.corner_front_left}\nCorner front right: {self.corner_front_right}\n"
+        )
         return str
 
     def make_2d_3d_association_list(self):
