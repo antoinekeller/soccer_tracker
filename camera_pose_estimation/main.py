@@ -18,45 +18,36 @@ from points_in_world import *
 def find_extrinsic_intrinsic_matrices(img, fx, guess_rot, guess_trans, key_points):
     height, width = img.shape[0], img.shape[1]
 
-    # Build camera projection matrix
-    K = np.array([[fx, 0, width / 2], [0, fx, height / 2], [0, 0, 1]])
-
     pixels, points_world = key_points.make_2d_3d_association_list()
 
     print(f"Solving PnP with {len(pixels)} points")
+
+    # Build camera projection matrix
+    est_fx = key_points.compute_fx()
+    if est_fx is None:
+        est_fx = fx
+
+    K = np.array([[est_fx, 0, width / 2], [0, est_fx, height / 2], [0, 0, 1]])
 
     if pixels.shape[0] <= 3:
         print("Too few points to solve!")
         return None, K, guess_rot, guess_trans
 
-    rotation_vector = guess_rot
-    translation_vector = guess_trans
+    (ret, rotation_vector, translation_vector) = cv2.solvePnP(
+        points_world,
+        pixels,
+        K,
+        distCoeffs=None,
+        rvec=guess_rot,
+        tvec=guess_trans,
+        useExtrinsicGuess=True,
+    )
 
-    i = 30
+    assert ret
 
-    while i > 0:
-
-        K[0, 0] = fx
-        K[1, 1] = fx
-
-        (ret, rotation_vector, translation_vector) = cv2.solvePnP(
-            points_world,
-            pixels,
-            K,
-            distCoeffs=None,
-            rvec=rotation_vector,
-            tvec=translation_vector,
-            useExtrinsicGuess=True,
-        )
-
-        if rotation_vector[0][0] != rotation_vector[0][0]:
-            print("BREAK")
-            return None, None, guess_rot, guess_trans
-
-        # print(ret, rotation_vector, translation_vector)
-
-        fx = key_points.compute_fx()
-        i -= 1
+    if np.isnan(rotation_vector[0, 0]):
+        print("PnP could not be solved correctly --> Skip")
+        return None, None, guess_rot, guess_trans
 
     # in the reference world
     to_device_from_world_rot = cv2.Rodrigues(rotation_vector)[0]
@@ -66,26 +57,22 @@ def find_extrinsic_intrinsic_matrices(img, fx, guess_rot, guess_trans, key_point
         translation_vector
     )
 
-    print(rotation_vector, translation_vector)
-
     print(
         f"Camera is located at {-camera_position_in_world[1,0]:.1f}m high and at {-camera_position_in_world[2,0]:.1f}m depth"
     )
-    if fx is None:
+    if est_fx is None:
         print("CRAZY VALUE!!!")
         return None, None, guess_rot, guess_trans
 
     dist_to_center = np.linalg.norm(camera_position_in_world)
-    print(f"Final fx = {fx:.1f}. Distance to origin = {dist_to_center:.1f}m")
+    print(f"Final fx = {est_fx:.1f}. Distance to origin = {dist_to_center:.1f}m")
     if dist_to_center > 100.0:
-        print("CRAZY VALUE!!!")
+        print("PnP: CRAZY VALUE!!!")
         return None, K, guess_rot, guess_trans
 
     to_device_from_world = np.identity(4)
     to_device_from_world[0:3, 0:3] = to_device_from_world_rot
     to_device_from_world[0:3, 3] = translation_vector.reshape((3,))
-
-    print(fx)
 
     return to_device_from_world, K, rotation_vector, translation_vector
 
