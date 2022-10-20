@@ -148,6 +148,20 @@ def calibrate_from_image(img, guess_fx, guess_rot, guess_trans):
     return K, to_device_from_world, found_rot, found_trans, img
 
 
+def draw_yaw_and_zoom(img, yaw, zoom):
+    img = cv2.putText(
+        img,
+        f"Yaw: {yaw:.0f} deg, Zoom: {zoom:.0f}",
+        (1280, 120),
+        cv2.FONT_HERSHEY_COMPLEX,
+        1,
+        color=(0, 255, 0),
+        thickness=2,
+    )
+
+    return img
+
+
 if __name__ == "__main__":
     guess_fx = 2000
 
@@ -192,6 +206,7 @@ if __name__ == "__main__":
 
         if to_device_from_world is not None:
             img = draw_pitch_lines(K, to_device_from_world, img)
+            img = draw_yaw_and_zoom(img, guess_rot[0, 1] * 180 / np.pi, K[0, 0])
 
         guess_rot = (
             rot if to_device_from_world is not None else np.array([[0.25, 0, 0]])
