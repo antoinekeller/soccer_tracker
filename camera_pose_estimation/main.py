@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 from argparse import ArgumentParser
+from pathlib import Path
 
 from pitch_tracker.common import intersect
 
@@ -94,7 +95,7 @@ def find_extrinsic_intrinsic_matrices(img, fx, guess_rot, guess_trans, key_point
             print("BREAK")
             return None, None, guess_rot, guess_trans
 
-        print(ret, rotation_vector, translation_vector)
+        # print(ret, rotation_vector, translation_vector)
 
         fx = key_points.compute_fx()
         i -= 1
@@ -126,6 +127,8 @@ def find_extrinsic_intrinsic_matrices(img, fx, guess_rot, guess_trans, key_point
     to_device_from_world[0:3, 0:3] = to_device_from_world_rot
     to_device_from_world[0:3, 3] = translation_vector.reshape((3,))
 
+    print(fx)
+
     return to_device_from_world, K, rotation_vector, translation_vector
 
 
@@ -153,6 +156,8 @@ def calibrate_from_image(img, guess_fx, guess_rot, guess_trans, debug=False, out
 
     # cv2.imshow("Draw key points", img)
     # cv2.waitKey(0)
+
+    assert not np.isnan(guess_rot[0, 0])
 
     to_device_from_world, K, guess_rot, guess_trans = find_extrinsic_intrinsic_matrices(
         img, guess_fx, guess_rot, guess_trans, key_points
@@ -212,8 +217,10 @@ def calibrate_from_image(img, guess_fx, guess_rot, guess_trans, debug=False, out
 if __name__ == "__main__":
     guess_fx = 2000
 
-    parser = ArgumentParser(description="Main script to find K, extrinsic pose")
-    parser.add_argument("--idx", type=int, help="Image index", nargs="*")
+    parser = ArgumentParser(
+        description="Main script to key points on a soccer field image"
+    )
+    parser.add_argument("input", type=str, help="Image path or folder")
     parser.add_argument(
         "--debug",
         action="store_const",
@@ -230,36 +237,38 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    list_of_files = (
-        sorted(os.listdir("../kaggle/images_line_detection/"))
-        if args.idx is None
-        else [f"image_{idx:03d}.png" for idx in args.idx]
+    if not Path(args.input).exists():
+        raise FileExistsError
+
+    images = (
+        sorted(Path(args.input).glob("**/*"))
+        if Path(args.input).is_dir()
+        else [Path(args.input)]
     )
 
-    guess_rot = (0.25, 0, 0)
+    guess_rot = np.array([[0.25, 0, 0]])
     guess_trans = (0, 0, 80)
 
-    for filename in list_of_files:
-        print(" ")
-        f = os.path.join("../kaggle/images_line_detection/", filename)
-        # checking if it is a file
-        if os.path.isfile(f):
-            print(f)
-            img = cv2.imread(f)
+    for filename in images:
+        if not filename.exists():
+            continue
 
-            print(guess_rot)
+        print(str(filename))
+        img = cv2.imread(str(filename))
 
-            K, to_device_from_world, rot, trans, img = calibrate_from_image(
-                img, guess_fx, guess_rot, guess_trans, args.debug, args.out
-            )
+        K, to_device_from_world, rot, trans, img = calibrate_from_image(
+            img, guess_fx, guess_rot, guess_trans, args.debug, args.out
+        )
 
-            guess_rot = rot
-            guess_trans = trans
+        guess_rot = (
+            rot if to_device_from_world is not None else np.array([[0.25, 0, 0]])
+        )
+        guess_trans = trans if to_device_from_world is not None else (0, 0, 80)
 
-            if not args.out:
-                cv2.imshow("Test", img)
-                k = cv2.waitKey(0)
-                if k == 27:
-                    break
-            else:
-                cv2.imwrite(os.path.join("images_line_detected/", filename), img)
+        if not args.out:
+            cv2.imshow("Test", img)
+            k = cv2.waitKey(0)
+            if k == 27:
+                break
+        else:
+            cv2.imwrite(os.path.join("images_line_detected/", filename), img)

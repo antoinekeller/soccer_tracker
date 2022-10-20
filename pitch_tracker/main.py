@@ -432,15 +432,10 @@ def find_key_points(img):
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="Main script to find K, extrinsic pose")
-    parser.add_argument("input", type=str, help="Image path or folder")
-    parser.add_argument(
-        "--debug",
-        action="store_const",
-        const=True,
-        default=False,
-        help="Debug",
+    parser = ArgumentParser(
+        description="Main script to key points on a soccer field image"
     )
+    parser.add_argument("input", type=str, help="Image path or folder")
     args = parser.parse_args()
 
     if not Path(args.input).exists():
