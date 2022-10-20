@@ -8,7 +8,6 @@ import numpy as np
 
 # Points in world with origin au centre, x going right, y to the foreground, z to the top
 # Positions are based on official soccer dimensions
-central_world = [0, 0, 0]
 right_circle_world = [9.15, 0, 0]
 left_circle_world = [-9.15, 0, 0]
 behind_circle_world = [0, 0, 9.15]
@@ -29,7 +28,6 @@ DIST_TO_CENTER = 77.0
 
 class KeyPoints:
     def __init__(self):
-        self.central = None
         self.right_circle = None
         self.left_circle = None
         self.behind_circle = None
@@ -43,7 +41,6 @@ class KeyPoints:
 
     def draw(self, img):
         """Draw all key points on image"""
-        img = draw_point(img, self.central)
         img = draw_point(img, self.right_circle)
         img = draw_point(img, self.left_circle)
         img = draw_point(img, self.behind_circle)
@@ -58,7 +55,7 @@ class KeyPoints:
         return img
 
     def __str__(self):
-        str = f"Central: {self.central}\nRight circle: {self.right_circle}\nLeft circle: {self.left_circle}\nBehing circle: {self.behind_circle}\nFront circle: {self.front_circle}\nBack middle line: {self.back_middle_line}\nFront middle line: {self.front_middle_line}"
+        str = f"Right circle: {self.right_circle}\nLeft circle: {self.left_circle}\nBehing circle: {self.behind_circle}\nFront circle: {self.front_circle}\nBack middle line: {self.back_middle_line}\nFront middle line: {self.front_middle_line}"
         return str
 
     def make_2d_3d_association_list(self):
@@ -132,7 +129,7 @@ class KeyPoints:
             fx = (
                 (central[0] - self.left_circle[0])
                 * DIST_TO_CENTER
-                / (central_world[0] - left_circle_world[0])
+                / (-left_circle_world[0])
             )
             return fx
 
@@ -140,7 +137,7 @@ class KeyPoints:
             fx = (
                 (self.right_circle[0] - central[0])
                 * DIST_TO_CENTER
-                / (right_circle_world[0] - central_world[0])
+                / (right_circle_world[0])
             )
             return fx
 

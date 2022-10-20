@@ -93,15 +93,18 @@ def find_extrinsic_intrinsic_matrices(
         f"Camera is located at {-camera_position_in_world[1,0]:.1f}m high and at {-camera_position_in_world[2,0]:.1f}m depth"
     )
     if fx is None:
-        print("CRAZY VALUE!!!")
+        print(f"PnP outputed crazy value for focal length: {fx} --> Skip")
         return None, None, guess_rot, guess_trans
 
     dist_to_center = np.linalg.norm(camera_position_in_world)
     print(f"Final fx = {fx:.1f}. Distance to origin = {dist_to_center:.1f}m")
-    if dist_to_center > 100.0:
-        print("PnP: CRAZY VALUE!!!")
+    if dist_to_center < 40.0 or dist_to_center > 100.0:
+        print(
+            f"PnP outputed crazy value for distance to center = {dist_to_center:.1f}m --> Skip"
+        )
         return None, K, guess_rot, guess_trans
 
+    # Build camera pose
     to_device_from_world = np.identity(4)
     to_device_from_world[0:3, 0:3] = to_device_from_world_rot
     to_device_from_world[0:3, 3] = translation_vector.reshape((3,))
@@ -158,7 +161,7 @@ def calibrate_from_image(img, guess_fx, guess_rot, guess_trans):
         )
         pt = project_to_screen(K, to_device_from_world, corner_back_left_world)
         key_points.corner_back_left = find_closer_point_on_line(pt, key_lines.back_line)
-    # draw_line(img, right_goal_line)
+
     if (
         key_points.corner_back_right is not None
         and key_lines.right_goal_line is not None
