@@ -237,12 +237,12 @@ if __name__ == "__main__":
         print(str(filename))
         img = cv2.imread(str(filename))
 
-        key_points, key_lines = find_key_points(img)
-        img = key_points.draw(img)
-
         K, to_device_from_world, rot, trans, img = calibrate_from_image(
             img, guess_fx, guess_rot, guess_trans
         )
+
+        key_points, key_lines = find_key_points(img)
+        img = key_points.draw(img)
 
         if to_device_from_world is not None:
             img = draw_pitch_lines(K, to_device_from_world, img)
