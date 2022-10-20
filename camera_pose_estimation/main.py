@@ -1,3 +1,20 @@
+"""
+This file aims at estimating optimal camera calibration matrices based only on
+the detected keypoints of the pitch.
+We assume that the camera has no distortion.
+We assume that intrinsic matrix is unknown (no pre-calibration), so we assume that the
+optical center is perfectly centered, that the focal length is the same along x and y axis.
+We have an initial rough estimate of the camera position, but we let the 6 degrees
+of freedom to find the camera pose (relative to the pitch)
+
+You can test it with:
+
+```
+python camera_pose_estimation/main.py images/
+```
+
+"""
+
 import cv2
 import numpy as np
 from argparse import ArgumentParser
@@ -5,33 +22,50 @@ from pathlib import Path
 
 from pitch_tracker.common import intersect
 
+from pitch_tracker.key_points import (
+    corner_front_right_world,
+    corner_front_left_world,
+    corner_back_right_world,
+    corner_back_left_world,
+)
+
 from pitch_tracker.main import find_key_points
 from projector import (
     draw_pitch_lines,
     project_to_screen,
 )
 
-from points_in_world import *
-
 
 def find_extrinsic_intrinsic_matrices(img, fx, guess_rot, guess_trans, key_points):
+    """
+    Given rough estimate of the focal length and of the camera pose, use PnP algorithm
+    to optimally fit key_points (2D) with corresponding points on the pitch (3D)
+
+    This returns the optimal focal length fx and the camera pose.
+    """
+
     height, width = img.shape[0], img.shape[1]
 
+    # Form the problem by associating pixels (2D) with points_world (3D)
     pixels, points_world = key_points.make_2d_3d_association_list()
 
+    # PnP algo needs at least 4 points to work
     print(f"Solving PnP with {len(pixels)} points")
 
     # Build camera projection matrix
+    # TODO
     est_fx = key_points.compute_fx()
     if est_fx is None:
         est_fx = fx
 
+    # Camera projection matrix
     K = np.array([[est_fx, 0, width / 2], [0, est_fx, height / 2], [0, 0, 1]])
 
     if pixels.shape[0] <= 3:
         print("Too few points to solve!")
         return None, K, guess_rot, guess_trans
 
+    # Perspective-n-Point algorithm, returning rotation and translation vector
     (ret, rotation_vector, translation_vector) = cv2.solvePnP(
         points_world,
         pixels,

@@ -3,7 +3,11 @@ This file defines function to be able to spot field lines in order to detect key
 that will help to localize our camera correctly
 
 Try it with
+
+```
 python pitch_tracker.py ../images/
+```
+
 """
 
 from pathlib import Path

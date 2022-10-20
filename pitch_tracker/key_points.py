@@ -1,7 +1,13 @@
+"""
+This module defines KeyPoints class and its correspondance in the 3D world
+See the README.md to have a better understanding of the naming of the 3D points
+"""
+
 from .common import draw_point
 import numpy as np
 
-# Points in world with origin au centre, x a droite, y vers le fond, z en haut
+# Points in world with origin au centre, x going right, y to the foreground, z to the top
+# Positions are based on official soccer dimensions
 central_world = [0, 0, 0]
 right_circle_world = [9.15, 0, 0]
 left_circle_world = [-9.15, 0, 0]
@@ -36,6 +42,7 @@ class KeyPoints:
         self.corner_front_right = None
 
     def draw(self, img):
+        """Draw all key points on image"""
         img = draw_point(img, self.central)
         img = draw_point(img, self.right_circle)
         img = draw_point(img, self.left_circle)
@@ -55,6 +62,10 @@ class KeyPoints:
         return str
 
     def make_2d_3d_association_list(self):
+        """
+        Define set of pixels (2D) and its correspondance of points in world (3D)
+        to feed the PnP solver.
+        """
         pixels = []
         points_world = []
 
@@ -95,6 +106,9 @@ class KeyPoints:
         return pixels, points_world
 
     def compute_fx(self):
+        """
+        Compute the focal length based on the central circle
+        """
         if self.right_circle is None and self.left_circle is None:
             return None
 

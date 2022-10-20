@@ -1,7 +1,14 @@
 import numpy as np
 import cv2
 
-from points_in_world import *
+from pitch_tracker.key_points import (
+    back_middle_line_world,
+    front_middle_line_world,
+    corner_front_right_world,
+    corner_front_left_world,
+    corner_back_right_world,
+    corner_back_left_world,
+)
 
 
 def project_to_screen(K, to_device_from_world, point_in_world):
