@@ -212,6 +212,7 @@ if __name__ == "__main__":
             rot if to_device_from_world is not None else np.array([[0.25, 0, 0]])
         )
         guess_trans = trans if to_device_from_world is not None else (0, 0, 80)
+        guess_fx = K[0, 0]
 
         if not args.out:
             cv2.imshow("Test", img)

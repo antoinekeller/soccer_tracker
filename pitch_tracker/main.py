@@ -405,7 +405,7 @@ def find_key_points(img):
     # Last step: detect goal line if there is one showing up
     if (
         key_points.back_middle_line is not None
-        and key_points.back_middle_line[0] < width / 3
+        and key_points.back_middle_line[0] < width * 2 / 5
     ):
         key_lines.right_goal_line = find_goal_line(
             img, key_lines.back_line, key_points.back_middle_line, False
@@ -413,7 +413,7 @@ def find_key_points(img):
 
     if (
         key_points.back_middle_line is not None
-        and key_points.back_middle_line[0] > width * 2 / 3
+        and key_points.back_middle_line[0] > width * 3 / 5
     ):
         key_lines.left_goal_line = find_goal_line(
             img, key_lines.back_line, key_points.back_middle_line, True
