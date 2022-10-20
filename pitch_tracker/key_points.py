@@ -1,4 +1,4 @@
-from common import draw_point
+from .common import draw_point
 
 # Points in world with origin au centre, x a droite, y vers le fond, z en haut
 central_world = [0, 0, 0]

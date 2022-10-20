@@ -11,8 +11,9 @@ import cv2
 import numpy as np
 from argparse import ArgumentParser
 
-from common import draw_line, intersect
-from key_points import KeyPoints
+from pitch_tracker.common import draw_line, intersect
+from pitch_tracker.key_points import KeyPoints
+from pitch_tracker.key_lines import KeyLines
 
 
 def find_back_front_lines(img):
@@ -366,6 +367,70 @@ def find_goal_line(img, back_line, back_middle_point, left_line=False):
     return goal_line
 
 
+def find_key_points(img):
+    """
+    Find key points in image
+    """
+    width = img.shape[1]
+
+    key_lines = KeyLines()
+
+    key_lines.back_line, key_lines.front_line = find_back_front_lines(img)
+
+    img_wo_out_of_field = remove_out_of_field(
+        img, key_lines.back_line, key_lines.front_line
+    )
+
+    key_lines.main_line = find_main_line(img_wo_out_of_field)
+
+    # key points can be found at the intersection
+    key_points = KeyPoints()
+
+    key_points.back_middle_line = intersect(key_lines.main_line, key_lines.back_line)
+    key_points.front_middle_line = intersect(key_lines.main_line, key_lines.front_line)
+
+    # Find central circle
+    (
+        key_points.left_circle,
+        key_points.right_circle,
+        key_points.behind_circle,
+        key_points.front_circle,
+    ) = find_central_circle(
+        img,
+        key_points.back_middle_line,
+        key_points.front_middle_line,
+        key_lines.main_line,
+    )
+
+    # Last step: detect goal line if there is one showing up
+    if (
+        key_points.back_middle_line is not None
+        and key_points.back_middle_line[0] < width / 3
+    ):
+        key_lines.right_goal_line = find_goal_line(
+            img, key_lines.back_line, key_points.back_middle_line, False
+        )
+
+    if (
+        key_points.back_middle_line is not None
+        and key_points.back_middle_line[0] > width * 2 / 3
+    ):
+        key_lines.left_goal_line = find_goal_line(
+            img, key_lines.back_line, key_points.back_middle_line, True
+        )
+
+    if key_lines.right_goal_line is not None:
+        key_points.corner_back_right = intersect(
+            key_lines.right_goal_line, key_lines.back_line
+        )
+    if key_lines.left_goal_line is not None:
+        key_points.corner_back_left = intersect(
+            key_lines.left_goal_line, key_lines.back_line
+        )
+
+    return key_points, key_lines
+
+
 if __name__ == "__main__":
     parser = ArgumentParser(description="Main script to find K, extrinsic pose")
     parser.add_argument("input", type=str, help="Image path or folder")
@@ -393,64 +458,11 @@ if __name__ == "__main__":
 
         print(str(filename))
         img = cv2.imread(str(filename))
-        width = img.shape[1]
-        back_line, front_line = find_back_front_lines(img)
 
-        img = draw_line(img, back_line)
-        img = draw_line(img, front_line)
-
-        img_wo_out_of_field = remove_out_of_field(img, back_line, front_line)
-
-        main_line = find_main_line(img_wo_out_of_field)
-        img = draw_line(img, main_line, "green")
-
-        # key points can be found at the intersection
-        key_points = KeyPoints()
-
-        key_points.back_middle_line = intersect(main_line, back_line)
-        key_points.front_middle_line = intersect(main_line, front_line)
-
-        # Find central circle
-        (
-            key_points.left_circle,
-            key_points.right_circle,
-            key_points.behind_circle,
-            key_points.front_circle,
-        ) = find_central_circle(
-            img,
-            key_points.back_middle_line,
-            key_points.front_middle_line,
-            main_line,
-            args.debug,
-        )
-
-        # Last step: detect goal line if there is one showing up
-        left_goal_line = None
-        right_goal_line = None
-        if (
-            key_points.back_middle_line is not None
-            and key_points.back_middle_line[0] < width / 3
-        ):
-            right_goal_line = find_goal_line(
-                img, back_line, key_points.back_middle_line, False
-            )
-
-        if (
-            key_points.back_middle_line is not None
-            and key_points.back_middle_line[0] > width * 2 / 3
-        ):
-            left_goal_line = find_goal_line(
-                img, back_line, key_points.back_middle_line, True
-            )
-
-        if right_goal_line is not None:
-            img = draw_line(img, right_goal_line, "blue")
-            key_points.corner_back_right = intersect(right_goal_line, back_line)
-        if left_goal_line is not None:
-            img = draw_line(img, left_goal_line, "blue")
-            key_points.corner_back_left = intersect(left_goal_line, back_line)
+        key_points, key_lines = find_key_points(img)
 
         img = key_points.draw(img)
+        img = key_lines.draw(img)
 
         cv2.imshow("Lines detection", img)
         k = cv2.waitKey(0)
