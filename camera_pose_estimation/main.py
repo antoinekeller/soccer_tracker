@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import os
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -95,7 +94,7 @@ def find_closer_point_on_line(point, line):
     return projected_point
 
 
-def calibrate_from_image(img, guess_fx, guess_rot, guess_trans, debug=False, out=False):
+def calibrate_from_image(img, guess_fx, guess_rot, guess_trans):
 
     key_points, key_lines = find_key_points(img)
 
@@ -109,12 +108,6 @@ def calibrate_from_image(img, guess_fx, guess_rot, guess_trans, debug=False, out
     )
 
     if to_device_from_world is None:
-        img = key_points.draw(img)
-        if not out:
-            cv2.imshow("Test", img)
-            cv2.waitKey(0)
-        else:
-            cv2.imwrite(os.path.join("images_line_detected/", filename), img)
         return K, to_device_from_world, guess_rot, guess_trans, img
 
     if key_points.corner_back_right is None and key_points.corner_back_left is None:
@@ -144,19 +137,15 @@ def calibrate_from_image(img, guess_fx, guess_rot, guess_trans, debug=False, out
         key_points.corner_front_left = intersect(
             key_lines.left_goal_line, key_lines.front_line
         )
-    img = key_points.draw(img)
 
     guess_fx = K[0, 0]
     # cv2.imshow("Test", img)
     # cv2.waitKey(0)
-    to_device_from_world, K, guess_rot, guess_trans = find_extrinsic_intrinsic_matrices(
+    to_device_from_world, K, found_rot, found_trans = find_extrinsic_intrinsic_matrices(
         img, guess_fx, guess_rot, guess_trans, key_points
     )
 
-    if to_device_from_world is not None:
-        img = draw_pitch_lines(K, to_device_from_world, img)
-
-    return K, to_device_from_world, guess_rot, guess_trans, img
+    return K, to_device_from_world, found_rot, found_trans, img
 
 
 if __name__ == "__main__":
@@ -166,13 +155,6 @@ if __name__ == "__main__":
         description="Main script to key points on a soccer field image"
     )
     parser.add_argument("input", type=str, help="Image path or folder")
-    parser.add_argument(
-        "--debug",
-        action="store_const",
-        const=True,
-        default=False,
-        help="Debug",
-    )
     parser.add_argument(
         "--out",
         action="store_const",
@@ -201,9 +183,15 @@ if __name__ == "__main__":
         print(str(filename))
         img = cv2.imread(str(filename))
 
+        key_points, key_lines = find_key_points(img)
+        img = key_points.draw(img)
+
         K, to_device_from_world, rot, trans, img = calibrate_from_image(
-            img, guess_fx, guess_rot, guess_trans, args.debug, args.out
+            img, guess_fx, guess_rot, guess_trans
         )
+
+        if to_device_from_world is not None:
+            img = draw_pitch_lines(K, to_device_from_world, img)
 
         guess_rot = (
             rot if to_device_from_world is not None else np.array([[0.25, 0, 0]])
@@ -216,4 +204,6 @@ if __name__ == "__main__":
             if k == 27:
                 break
         else:
-            cv2.imwrite(os.path.join("images_line_detected/", filename), img)
+            out_path = Path("camera_pose_estimation/out").joinpath(Path(filename).name)
+            print(f"Writing image to {str(out_path)}")
+            cv2.imwrite(str(out_path), img)
