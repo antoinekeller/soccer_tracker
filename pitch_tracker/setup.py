@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pitch_tracker",
-    packages=find_packages(),
+    packages=find_packages(include=["pitch_tracker"]),
     author="Antoine",
     description="Pitch tracker module",
     # install_requires=required,
