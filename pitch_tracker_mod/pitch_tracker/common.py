@@ -19,18 +19,6 @@ def draw_point(img, point):
     return img
 
 
-def yolobbox2bbox(x, y, w, h, img_width, img_height):
-    """
-    Transform yolo bbox in xy-widht-height convention
-    to bottom_left and top_right coordinates
-    """
-    x1, y1 = x - w / 2, y - h / 2
-    x2, y2 = x + w / 2, y + h / 2
-    x1, x2 = int(x1 * img_width), int(x2 * img_width)
-    y1, y2 = int(y1 * img_height), int(y2 * img_height)
-    return (x1, y1), (x2, y2)
-
-
 def draw_line(img, line, color="red"):
     """Draw unlimited line on image with some color
     Line is defined in polar coordinates

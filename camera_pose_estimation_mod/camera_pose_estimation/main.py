@@ -19,7 +19,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from projector import (
+from camera_pose_estimation.projector import (
     draw_pitch_lines,
     project_to_screen,
 )
