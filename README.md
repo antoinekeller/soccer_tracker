@@ -80,6 +80,32 @@ cd ../pitch_tracker_package
 pip install -e .
 ```
 
+## Test
+
+If you are using videos, I recommend to extract them using ffmpeg, for example:
+
+```
+ffmpeg -i your_video.mp4 -r 25 image_%03d.png
+```
+
+Then, use the yolov5 weights to detect the players and the ball on each image, and save the results in .txt files.
+
+First test the basic tracking and color assignement by running:
+
+```
+python team_assigner_with_ball_tracking.py your_images/ your_yolo_labels/
+```
+
+If you are satifsied with this, you can build up a top view visualization:
+
+```
+python main.py your_images/ your_yolo_labels/
+```
+
+
+
+
+
 ## Areas of improvements
 
 As you can see, results are not as good as expected, for the following reasons:
