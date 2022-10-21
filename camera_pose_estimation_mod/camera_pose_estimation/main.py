@@ -256,7 +256,7 @@ if __name__ == "__main__":
         action="store_const",
         const=True,
         default=False,
-        help="Debug",
+        help="Output images with pose estimation",
     )
     args = parser.parse_args()
 

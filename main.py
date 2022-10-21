@@ -10,18 +10,6 @@ from camera_pose_estimation.main import calibrate_from_image
 from team_assigner import DominantColors
 
 
-def yolobbox2bbox(x, y, w, h, img_width, img_height):
-    """
-    Transform yolo bbox in xy-widht-height convention
-    to bottom_left and top_right coordinates
-    """
-    x1, y1 = x - w / 2, y - h / 2
-    x2, y2 = x + w / 2, y + h / 2
-    x1, x2 = int(x1 * img_width), int(x2 * img_width)
-    y1, y2 = int(y1 * img_height), int(y2 * img_height)
-    return (x1, y1), (x2, y2)
-
-
 def from_world_to_field(x, z):
     center_field = [826, 520]
     scale = (1585 - 68) / 105  # 105 meters
@@ -164,7 +152,7 @@ if __name__ == "__main__":
 
             sub_img = img[pt1[1] : pt2[1], pt1[0] : pt2[0]]
             dc = DominantColors(sub_img, 2)
-            colors = dc.dominantColors()
+            colors = dc.dominant_colors()
             color = (int(colors[0][2]), int(colors[0][1]), int(colors[0][0]))
 
             cv2.rectangle(img, pt1, pt2, color=color, thickness=3)

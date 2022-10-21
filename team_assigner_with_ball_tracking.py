@@ -116,6 +116,69 @@ def yolobbox2bbox(x, y, w, h, img_width, img_height):
     return (x1, y1), (x2, y2)
 
 
+def basic_ball_tracker(labels):
+    """
+    Basic tracker of the ball: loop over ball detections.
+    If no detection, select previous known position
+    """
+
+    labels = sorted(labels.glob("**/*"))
+
+    # Ball position tracker (use previous position if no known position)
+    prev_pos = np.zeros(4)
+    ball_positions = np.zeros((750, 4))
+    i = 0
+    for i, yolo_file in enumerate(labels):
+        if not yolo_file.exists():
+            raise FileExistsError
+
+        data = np.loadtxt(yolo_file)
+        ball = data[data[:, 0] == 1]
+        if len(ball) == 0:
+            ball_positions[i, :] = prev_pos
+        else:
+            ball_positions[i, :] = ball[0, 1:5]
+            prev_pos = ball[0, 1:5]
+
+    return ball_positions
+
+
+def draw_colored_players(yolo_file, img):
+    """
+    Draw colored players with yolo bbox and DominanColors
+    """
+
+    img_copy = img.copy()
+    data = np.loadtxt(yolo_file)
+    width = img.shape[1]
+    height = img.shape[0]
+
+    for k in range(data.shape[0]):
+        # Skip ball with class id 1
+        if data[k, 0] == 1:
+            continue
+
+        # Skip detections with ridiculous values
+        if data[k, 3] < 0.01:
+            continue
+
+        # Transform yolo bounding box to opencv convention
+        pt1, pt2 = yolobbox2bbox(
+            data[k, 1], data[k, 2], data[k, 3], data[k, 4], width, height
+        )
+
+        # Make a sub image and find shirt color
+        sub_img = img[pt1[1] : pt2[1], pt1[0] : pt2[0]]
+        dc = DominantColors(sub_img, 2)
+        colors = dc.dominant_colors()
+        color = (int(colors[0][2]), int(colors[0][1]), int(colors[0][0]))
+
+        # Draw bounding box with found color
+        cv2.rectangle(img_copy, pt1, pt2, color=color, thickness=3)
+
+    return img_copy
+
+
 if __name__ == "__main__":
     parser = ArgumentParser(
         description="Perform basic ball tracking and find shirt color of each player"
@@ -136,24 +199,7 @@ if __name__ == "__main__":
 
     images = sorted(Path(args.input).glob("**/*"))
 
-    # Ball position tracker (use previous position if no known position)
-    prev_pos = np.zeros(4)
-    ball_positions = np.zeros((750, 4))
-    i = 0
-    for i, filename in enumerate(images):
-        filename = Path(filename)
-        yolo_file = Path(args.labels).joinpath(Path(f"{filename.stem}.txt"))
-
-        if not yolo_file.exists():
-            raise FileExistsError
-
-        data = np.loadtxt(yolo_file)
-        ball = data[data[:, 0] == 1]
-        if len(ball) == 0:
-            ball_positions[i, :] = prev_pos
-        else:
-            ball_positions[i, :] = ball[0, 1:5]
-            prev_pos = ball[0, 1:5]
+    ball_positions = basic_ball_tracker(Path(args.labels))
 
     for i, filename in enumerate(images):
         if not filename.exists():
@@ -167,32 +213,8 @@ if __name__ == "__main__":
 
         width = img.shape[1]
         height = img.shape[0]
-        data = np.loadtxt(yolo_file)
 
-        img_copy = img.copy()
-
-        for k in range(data.shape[0]):
-            # Skip ball with class id 1
-            if data[k, 0] == 1:
-                continue
-
-            # Skip detections with ridiculous values
-            if data[k, 3] < 0.01:
-                continue
-
-            # Transform yolo bounding box to opencv convention
-            pt1, pt2 = yolobbox2bbox(
-                data[k, 1], data[k, 2], data[k, 3], data[k, 4], width, height
-            )
-
-            # Make a sub image and find shirt color
-            sub_img = img[pt1[1] : pt2[1], pt1[0] : pt2[0]]
-            dc = DominantColors(sub_img, 2)
-            colors = dc.dominant_colors()
-            color = (int(colors[0][2]), int(colors[0][1]), int(colors[0][0]))
-
-            # Draw bounding box with found color
-            cv2.rectangle(img_copy, pt1, pt2, color=color, thickness=3)
+        img_copy = draw_colored_players(yolo_file, img)
 
         # Draw ball position
         ball_bl, ball_tr = yolobbox2bbox(
