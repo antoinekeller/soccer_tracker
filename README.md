@@ -16,7 +16,7 @@ This requires several computer vision algorithms. Here are described the main st
 
 ## Demo
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/tXa_gfmQnmw/0.jpg)](https://www.youtube.com/watch?v=tXa_gfmQnmw&ab_channel=antoinekeller)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/d0JI0GDzkOI/0.jpg)](https://www.youtube.com/watch?v=d0JI0GDzkOI&ab_channel=antoinekeller)
 
 ## Overview
 
@@ -102,7 +102,11 @@ If you are satifsied with this, you can build up a top view visualization:
 python main.py your_images/ your_yolo_labels/
 ```
 
+If you want to build up a video with images, it s possible too with ffmpeg:
 
+```
+ffmpeg -i image_%03d.png -c:v libx264 -vf fps=25 -pix_fmt yuv420p out_video.mp4
+```
 
 
 
