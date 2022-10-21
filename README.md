@@ -39,33 +39,46 @@ This requires several computer vision algorithms. Here are described the main st
 
 ```
 .
-├── images                        # 2 images of sudoku to use with sudoku_cv.py
-│   ├── 1.jpeg
-│   └── 2.png
-├── ocr                           # Optical Character Recognition folder
-│   ├── confusion_matrix.png      # used in README.md
-│   ├── fonts                     # 10 common fonts for the neural network training
-│   │   ├── arial.ttf
-│   │   ├── calibri.ttf
-│   │   ├── Cambria.ttf
-│   │   ├── FranklinGothic.ttf
-│   │   ├── futur.ttf
-│   │   ├── Garamond.ttf
-│   │   ├── Helvetica 400.ttf
-│   │   ├── rock.ttf
-│   │   ├── times.ttf
-│   │   └── verdana.ttf
-│   ├── model.h5                  # CNN weights
-│   ├── model.json                # CNN description
-│   ├── ocr_trainer.py            # The Keras neural network trainer
+├── camera_pose_estimation_package      # Camera pose estimation package
+│   ├── camera_pose_estimation
+│   │   ├── main.py
+│   │   └── projector.py
 │   ├── README.md
-│   └── test_examples.png         # used in README.md
+│   └── setup.py
+├── images                              # Example images
+│   ├── image_001.png
+│   ├── image_002.png
+│   ├── image_003.png
+│   ├── image_004.png
+│   ├── image_005.png
+│   ├── image_006.png
+│   ├── image_007.png
+│   ├── image_008.png
+│   └── image_009.png
+├── main.py                             # Main script to generate top view of the soccer pitch with players/ball
+├── out
+├── pitch_tracker_package            
+│   ├── pitch_tracker
+│   │   ├── common.py
+│   │   ├── key_lines.py
+│   │   ├── key_points.py
+│   │   └── main.py
+│   ├── README.md
+│   └── setup.py
+├── players_and_ball_detection           # Yolov5 neural network folder
+│   ├── det_image_001.png
+│   ├── image_001.png
+│   └── yolov5_players_and_ball.pt
 ├── README.md
-├── solved.png                    # used in README.md
-├── solver.py                     # the core algorithm to solve a sudoku
-├── sudoku_cv.py                  # useful script to detect/solve a sudoku on an image
-├── sudoku_locator.py             # class that detects and localize the grid
-└── sudoku_webcam.py              # the main script that uses the webcam to detect/solve/track the sudoku
+├── res                                  # Resources for README.md
+│   ├── inference_tracking.png
+│   ├── key_points_description.png
+│   ├── key_points.png
+│   ├── pose_estimation.png
+│   └── top_view.png
+├── soccer_field.png                     # Soccer field image (top view)
+└── team_assigner_with_ball_tracking.py  # Basic tracking of the ball + assign color to each player
+
 ```
 
 ## Installation
