@@ -94,3 +94,5 @@ As you can see, results are not as good as expected, for the following reasons:
 Ideally, we would want to be able to track each player continuously, and follow each of them by its jersey number. Even if one of the players goes out of the field of view of the camera, we would like to recognize him when he is showing up again.
 
 Filtering could be added for object movement (Kalman filter) and camera movement too (way too shaky).
+
+More areas of improvements are detailed in each folder README.md

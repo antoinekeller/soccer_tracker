@@ -14,8 +14,6 @@ behind_circle_world = [0, 0, 9.15]
 front_circle_world = [0, 0, -9.15]
 front_middle_line_world = [0, 0, -34]
 back_middle_line_world = [0, 0, 34]
-test_point_world = [30, 0, 34]
-help_point_world = [-30, 0, 34]
 
 corner_back_left_world = [-52.5, 0, 34]
 corner_front_left_world = [-52.5, 0, -34]
