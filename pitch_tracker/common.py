@@ -1,8 +1,11 @@
+"""This module defines useful functions to manipulate images"""
+
 import cv2
 import numpy as np
 
 
 def draw_point(img, point):
+    """Draw key point with opencv on image"""
     if point is None:
         return img
     img = cv2.circle(
@@ -17,6 +20,10 @@ def draw_point(img, point):
 
 
 def yolobbox2bbox(x, y, w, h, img_width, img_height):
+    """
+    Transform yolo bbox in xy-widht-height convention
+    to bottom_left and top_right coordinates
+    """
     x1, y1 = x - w / 2, y - h / 2
     x2, y2 = x + w / 2, y + h / 2
     x1, x2 = int(x1 * img_width), int(x2 * img_width)
@@ -25,6 +32,10 @@ def yolobbox2bbox(x, y, w, h, img_width, img_height):
 
 
 def draw_line(img, line, color="red"):
+    """Draw unlimited line on image with some color
+    Line is defined in polar coordinates
+    """
+
     if line is None:
         return img
 

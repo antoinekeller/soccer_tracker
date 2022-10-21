@@ -29,6 +29,7 @@ def project_to_screen(K, to_device_from_world, point_in_world):
 
 
 def project_and_draw_lines(K, to_device_from_world, points_in_world, img):
+    """Project list of points in world and draw polyline"""
 
     projected_points = []
     for point_in_world in points_in_world:
@@ -52,14 +53,14 @@ def project_and_draw_lines(K, to_device_from_world, points_in_world, img):
 def draw_central_circle(K, to_device_from_world, img):
     """Draw central circle on the image"""
 
-    CIRCLE_RADIUS = 9.15
+    circle_radius = 9.15
 
     res = 25
     circle_points_projected = np.zeros((res, 2), dtype=np.int32)
     for i in range(res):
         angle = i / res * np.pi * 2
         circle_points_world = (
-            np.array([np.cos(angle), 0, np.sin(angle)]) * CIRCLE_RADIUS
+            np.array([np.cos(angle), 0, np.sin(angle)]) * circle_radius
         )
         circle_points_projected[i] = project_to_screen(
             K, to_device_from_world, circle_points_world
@@ -107,6 +108,9 @@ def draw_border_lines(K, to_device_from_world, img):
 
 
 def draw_penalty_areas(K, to_device_from_world, img):
+    """
+    Draw penalty areas on both sides
+    """
 
     penalty_left_front_goal_world = [-52.5, 0, -20.16]
     penalty_left_front_field_world = [-36, 0, -20.16]

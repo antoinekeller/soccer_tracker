@@ -14,26 +14,24 @@ python camera_pose_estimation/main.py images/
 ```
 
 """
-
-import cv2
-import numpy as np
 from argparse import ArgumentParser
 from pathlib import Path
+import cv2
+import numpy as np
+
+from projector import (
+    draw_pitch_lines,
+    project_to_screen,
+)
 
 from pitch_tracker.common import intersect
-
 from pitch_tracker.key_points import (
     corner_front_right_world,
     corner_front_left_world,
     corner_back_right_world,
     corner_back_left_world,
 )
-
 from pitch_tracker.main import find_key_points
-from projector import (
-    draw_pitch_lines,
-    project_to_screen,
-)
 
 
 def find_extrinsic_intrinsic_matrices(
@@ -90,7 +88,8 @@ def find_extrinsic_intrinsic_matrices(
     )
 
     print(
-        f"Camera is located at {-camera_position_in_world[1,0]:.1f}m high and at {-camera_position_in_world[2,0]:.1f}m depth"
+        f"Camera is located at {-camera_position_in_world[1,0]:.1f}m high and "
+        f"at {-camera_position_in_world[2,0]:.1f}m depth"
     )
     if fx is None:
         print(f"PnP outputed crazy value for focal length: {fx} --> Skip")
@@ -113,6 +112,7 @@ def find_extrinsic_intrinsic_matrices(
 
 
 def find_closer_point_on_line(point, line):
+    """Find closer point on a line to the given point"""
     rho = line[0]
     theta = line[1]
     point = np.array(point)
@@ -260,7 +260,8 @@ if __name__ == "__main__":
                 img, guess_rot[0, 1] * 180 / np.pi, K[0, 0]
             )
 
-        # Modify current value of calibration matrices to get benefit of this computation for next image
+        # Modify current value of calibration matrices to get benefit
+        # of this computation for next image
         guess_rot = (
             rot if to_device_from_world is not None else np.array([[0.25, 0, 0]])
         )

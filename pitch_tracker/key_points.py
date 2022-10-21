@@ -3,8 +3,8 @@ This module defines KeyPoints class and its correspondance in the 3D world
 See the README.md to have a better understanding of the naming of the 3D points
 """
 
-from .common import draw_point
 import numpy as np
+from .common import draw_point
 
 # Points in world with origin au centre, x going right, y to the foreground, z to the top
 # Positions are based on official soccer dimensions
@@ -27,6 +27,11 @@ DIST_TO_CENTER = 77.0
 
 
 class KeyPoints:
+    """
+    Class of key points to be used to solve the PnP
+    and estimate the focal length
+    """
+
     def __init__(self):
         self.right_circle = None
         self.left_circle = None
@@ -55,13 +60,16 @@ class KeyPoints:
         return img
 
     def __str__(self):
-        str = (
-            f"Right circle: {self.right_circle}\nLeft circle: {self.left_circle}\nBehing circle: {self.behind_circle}\n"
-            f"Front circle: {self.front_circle}\nBack middle line: {self.back_middle_line}\nFront middle line: {self.front_middle_line}\n"
-            f"Corner back left: {self.corner_back_left}\nCorner back right: {self.corner_back_right}\n"
-            f"Corner front left: {self.corner_front_left}\nCorner front right: {self.corner_front_right}\n"
+        return (
+            f"Right circle: {self.right_circle}\nLeft circle: {self.left_circle}\n"
+            f"Behing circle: {self.behind_circle}\nFront circle: {self.front_circle}\n"
+            f"Back middle line: {self.back_middle_line}\n"
+            f"Front middle line: {self.front_middle_line}\n"
+            f"Corner back left: {self.corner_back_left}\n"
+            f"Corner back right: {self.corner_back_right}\n"
+            f"Corner front left: {self.corner_front_left}\n"
+            f"Corner front right: {self.corner_front_right}\n"
         )
-        return str
 
     def make_2d_3d_association_list(self):
         """

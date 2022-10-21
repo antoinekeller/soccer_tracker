@@ -10,12 +10,12 @@ python pitch_tracker.py ../images/
 
 """
 
+from argparse import ArgumentParser
 from pathlib import Path
 import cv2
 import numpy as np
-from argparse import ArgumentParser
 
-from pitch_tracker.common import draw_line, intersect
+from pitch_tracker.common import intersect
 from pitch_tracker.key_points import KeyPoints
 from pitch_tracker.key_lines import KeyLines
 
@@ -31,9 +31,6 @@ def find_back_front_lines(img):
 
     # Use a standard canny before performing Hough lines detection
     dst = cv2.Canny(img, 50, 200, None, 3)
-
-    # Copy edges to the images that will display the results in BGR
-    cdst = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
 
     lines = cv2.HoughLines(
         dst,
@@ -57,15 +54,11 @@ def find_back_front_lines(img):
         theta = line[0][1]
         a = np.cos(theta)
         b = np.sin(theta)
-        x0 = a * rho
-        y0 = b * rho
-        # pt1 = (int(x0 + 2000 * (-b)), int(y0 + 2000 * (a)))
-        # pt2 = (int(x0 - 2000 * (-b)), int(y0 - 2000 * (a)))
         y_middle = (rho - width / 2 * np.cos(theta)) / np.sin(theta)
-        if y_middle < height / 2 and y_middle > back_line_y:
+        if back_line_y < y_middle < height / 2:
             back_line_y = y_middle
             back_line = line[0]
-        if y_middle > height / 2 and y_middle < front_line_y:
+        if height / 2 < y_middle < front_line_y:
             front_line_y = y_middle
             front_line = line[0]
 
@@ -305,7 +298,7 @@ def find_goal_line(img, back_line, back_middle_point, left_line=False):
         max_theta=max_theta,
     )
     if lines is None:
-        return
+        return None
 
     max_y_out = 0
 
