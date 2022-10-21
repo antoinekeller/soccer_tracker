@@ -210,6 +210,38 @@ def display_yaw_and_focal_length(img, yaw, fx):
     return img
 
 
+def display_top_view(K, to_device_from_world, img):
+    """
+    Display top view of the image, by unprojecting every pixels of the image
+    to its correspondance in the world, assuming that altitude is 0
+    """
+
+    height = img.shape[0]
+    width = img.shape[1]
+
+    # Top view
+    width_soccer_field = 105
+    height_soccer_field = 68
+    unskewd = np.zeros((height, width, 3), np.uint8)
+    pixels_width = int(width_soccer_field / height_soccer_field * height)
+    offset_x = (width - pixels_width) // 2
+
+    for i in range(height):
+        z_world = -corner_front_left_world[2] - i * height_soccer_field / height
+        for j in range(1668):
+
+            x_world = corner_front_left_world[0] + j * width_soccer_field / pixels_width
+            proj = project_to_screen(
+                K, to_device_from_world, np.array([x_world, 0, z_world])
+            )
+            u = proj[0]
+            v = proj[1]
+            if 0 <= u < width and 0 <= v < height:
+                unskewd[i, j + offset_x] = img[v, u]
+
+    return unskewd
+
+
 if __name__ == "__main__":
     # Default value of our focal length to start with
     # Dont forget to change this value if you are using different sizes of images
@@ -250,6 +282,16 @@ if __name__ == "__main__":
         K, to_device_from_world, rot, trans, img = calibrate_from_image(
             img, guess_fx, guess_rot, guess_trans
         )
+
+        # Uncomment to have unskwed image (top view)
+        # if to_device_from_world is not None:
+        #    unskewd = display_top_view(K, to_device_from_world, img)
+        #    out_path = Path("top_views").joinpath(Path(filename).name)
+        #    print(f"Writing image to {str(out_path)}")
+        #    cv2.imwrite(str(out_path), unskewd)
+        #
+        #    cv2.imshow("unskewd", unskewd)
+        #    cv2.waitKey(0)
 
         key_points, key_lines = find_key_points(img)
         img = key_points.draw(img)
