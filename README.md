@@ -1,6 +1,9 @@
 # Soccer players & ball tracker with camera pose estimation
 
-![plot](./solved.png)
+<p>
+<em>Key points and lines detection</em></br>
+<img src="res/key_points.png"  width="800" alt>
+</p>
 
 Goal of this project is to generate a top-view image of a soccer game with the players and the ball on it, potentially to generate statistics of the game.
 
@@ -14,6 +17,23 @@ This requires several computer vision algorithms. Here are described the main st
 ## Demo
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/tXa_gfmQnmw/0.jpg)](https://www.youtube.com/watch?v=tXa_gfmQnmw&ab_channel=antoinekeller)
+
+## Overview
+
+<p>
+<em>camera pose estimation and lines reprojection</em></br>
+<img src="res/pose_estimation.png"  width="800" alt>
+</p>
+
+<p>
+<em>Yolov5 players and ball detection with jersey colors</em></br>
+<img src="res/inference_tracking.png"  width="800" alt>
+</p>
+
+<p>
+<em>Top view images with ball in blue, players with jersey colors, referee in black</em></br>
+<img src="res/top_view.png"  width="800" alt>
+</p>
 
 ## Repo description
 
@@ -59,3 +79,18 @@ pip install -e .
 cd ../pitch_tracker_package
 pip install -e .
 ```
+
+## Areas of improvements
+
+As you can see, results are not as good as expected, for the following reasons:
+- we assume no camera distortion
+- we assume that the optical center is perfeclty centered on the camera
+- we dont know in advance what is the intrinsic matrix
+- we dont know the camera location
+- neural network could perform better
+- tracking of the ball is very basic
+- we assume that the ball is constantly at 0 altitude, so when it s shot in the air, trajectory is very weird
+
+Ideally, we would want to be able to track each player continuously, and follow each of them by its jersey number. Even if one of the players goes out of the field of view of the camera, we would like to recognize him when he is showing up again.
+
+Filtering could be added for object movement (Kalman filter) and camera movement too (way too shaky).
